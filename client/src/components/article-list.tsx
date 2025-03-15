@@ -18,7 +18,7 @@ export default function ArticleList({
 }: ArticleListProps) {
   const [limit, setLimit] = useState(initialLimit);
   const [activeFilter, setActiveFilter] = useState("All");
-  
+
   const { data, isLoading, error, refetch } = useQuery<ArticleProps[]>({
     queryKey: [endpoint, limit],
     queryFn: async () => {
@@ -28,11 +28,11 @@ export default function ArticleList({
       });
     },
   });
-  
+
   const loadMore = () => {
     setLimit(prev => prev + 4);
   };
-  
+
   // Render loading skeletons
   if (isLoading) {
     return (
@@ -72,7 +72,7 @@ export default function ArticleList({
       </section>
     );
   }
-  
+
   if (error || !data) {
     return (
       <section className="mb-12">
@@ -109,7 +109,7 @@ export default function ArticleList({
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-6 px-4 md:px-6 lg:px-8"> {/* Added grid and responsive classes */}
         {data.map(article => (
           <ArticleCard key={article.id} article={article} />
         ))}
