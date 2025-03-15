@@ -31,14 +31,15 @@ export default function AIStatus({ showDetails = false }: AIStatusProps) {
   const checkStatus = async () => {
     setLoading(true);
     try {
-      // Use the getQueryFn to handle the request
-      const response = await apiRequest({
-        method: "GET",
-        url: "/api/ai-status",
-      });
+      // Use a standard fetch call 
+      const response = await fetch("/api/ai-status");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
       
-      // Cast the response to our expected type
-      setStatus(response as AIStatusResponse);
+      // Set the status with the response data
+      setStatus(data as AIStatusResponse);
     } catch (error) {
       console.error("Error checking AI status:", error);
       toast({
