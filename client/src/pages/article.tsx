@@ -68,7 +68,7 @@ export default function ArticlePage() {
   
   // Local state
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(true);
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<Comment[]>([
     {
@@ -305,10 +305,14 @@ export default function ArticlePage() {
                     <Eye className="mr-1 h-4 w-4" /> {article.viewCount}
                   </span>
                   <button 
-                    className="flex items-center text-gray-400 hover:text-primary-400 transition-colors"
+                    className="flex items-center text-gray-400 hover:text-primary-400 transition-colors relative group"
                     onClick={() => setShowComments(!showComments)}
+                    aria-label="View comments"
                   >
                     <MessageSquare className="mr-1 h-4 w-4" /> {comments.length}
+                    <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs bg-dark-700 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      {showComments ? "Hide comments" : "Show comments"}
+                    </span>
                   </button>
                   
                   {/* Bookmark Button */}
@@ -528,7 +532,7 @@ export default function ArticlePage() {
             </article>
 
             {/* Comments Section */}
-            <div className={`mb-10 transition-all duration-300 ${showComments ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
+            <div className="mb-10 transition-all duration-300">
               <h2 className="text-xl font-bold text-white mb-6 flex items-center">
                 <MessageSquare className="mr-2 h-5 w-5" /> Discussion ({comments.length})
               </h2>

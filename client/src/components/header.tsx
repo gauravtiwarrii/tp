@@ -147,7 +147,7 @@ export default function Header() {
       </button>
 
       {/* Add offset padding to ensure content doesn't hide under the fixed header */}
-      <div className="h-36 md:h-40"></div>
+      <div className="h-24 md:h-28"></div>
     </>
   );
 }
