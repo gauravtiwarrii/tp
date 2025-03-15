@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { NAV_LINKS } from "@/lib/constants";
 import SearchBar from "@/components/search-bar";
 import MobileMenu from "@/components/mobile-menu";
+import AIStatus from "@/components/ai-status";
 import { Cpu } from "lucide-react";
 
 export default function Header() {
@@ -53,6 +54,11 @@ export default function Header() {
                   {link.name}
                 </Link>
               ))}
+              
+              {/* AI Status Indicator */}
+              <div className="ml-2">
+                <AIStatus />
+              </div>
             </nav>
 
             {/* Mobile Menu Button */}

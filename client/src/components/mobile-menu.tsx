@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { NAV_LINKS } from "@/lib/constants";
 import SearchBar from "@/components/search-bar";
+import AIStatus from "@/components/ai-status";
 import { X, Cpu } from "lucide-react";
 
 interface MobileMenuProps {
@@ -56,7 +57,16 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
           ))}
         </nav>
 
-        <div className="mt-8 pt-6 border-t border-dark-300">
+        {/* AI Status */}
+        <div className="mt-6 pt-6 border-t border-dark-300">
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-sm text-gray-500">AI Status</p>
+            <AIStatus />
+          </div>
+        </div>
+        
+        {/* Trending Topics */}
+        <div className="mt-4 pt-6 border-t border-dark-300">
           <p className="text-sm text-gray-500 mb-4">Trending Topics</p>
           <div className="flex flex-wrap gap-2">
             <Link href="/tag/ai-ethics" onClick={onClose} className="px-3 py-1 bg-dark-400 text-primary-400 rounded-full text-xs font-medium">#AIEthics</Link>

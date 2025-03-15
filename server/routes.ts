@@ -18,13 +18,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     scheduleNewsUpdates(60);
   });
   
+  // Test OpenAI connection status
+  app.get("/api/ai-status", async (_req: Request, res: Response) => {
+    try {
+      // Test the OpenAI connection status
+      const connectionStatus = await testOpenAiConnection();
+      res.json({
+        ...connectionStatus,
+        apiKey: process.env.OPENAI_API_KEY ? "configured" : "missing"
+      });
+    } catch (error: any) {
+      console.error("Error checking OpenAI status:", error);
+      res.status(500).json({ 
+        success: false,
+        message: `Error checking OpenAI status: ${error.message || String(error)}`
+      });
+    }
+  });
+  
   // Test endpoint for AI processing
   app.get("/api/test-ai-features", async (_req: Request, res: Response) => {
     try {
-      // Trigger article processing to test OpenAI integration
+      // First check OpenAI status
+      const connectionStatus = await testOpenAiConnection();
+      
+      // Trigger article processing (will use fallback if needed)
       console.log("Testing AI features...");
       await processAndSaveArticles();
-      res.json({ message: "AI features tested successfully, articles processed with OpenAI" });
+      
+      res.json({ 
+        message: "AI features tested successfully, articles processed" + (connectionStatus.success ? " with OpenAI API" : " in demo mode"),
+        apiStatus: connectionStatus
+      });
     } catch (error: any) {
       console.error("Error testing AI features:", error);
       res.status(500).json({ 
