@@ -1,15 +1,37 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { scheduleNewsUpdates } from "./services/news";
+import { scheduleNewsUpdates, processAndSaveArticles } from "./services/news";
+import { testOpenAiConnection } from "./services/openai";
 import { z } from "zod";
 import cron from "node-cron";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Schedule news updates every hour using cron
+  // Run immediate news update on startup
+  console.log("Running immediate news update on startup");
+  scheduleNewsUpdates(60);
+  
+  // Schedule hourly updates
   cron.schedule("0 * * * *", () => {
     console.log("Running scheduled news update");
     scheduleNewsUpdates(60);
+  });
+  
+  // Test endpoint for AI processing
+  app.get("/api/test-ai-features", async (_req: Request, res: Response) => {
+    try {
+      // Trigger article processing to test OpenAI integration
+      console.log("Testing AI features...");
+      await processAndSaveArticles();
+      res.json({ message: "AI features tested successfully, articles processed with OpenAI" });
+    } catch (error: any) {
+      console.error("Error testing AI features:", error);
+      res.status(500).json({ 
+        message: "Failed to test AI features", 
+        error: error.message || String(error) 
+      });
+    }
   });
 
   // Get articles with pagination

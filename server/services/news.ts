@@ -161,7 +161,7 @@ function getMockArticles(): InsertArticle[] {
   return [
     {
       title: "GPT-5 Prototype Shows Remarkable Reasoning Skills in Early Tests",
-      content: "Researchers unveil the next evolution in AI language models with capabilities that approach human-like understanding and problem-solving in complex scenarios. The new model demonstrates unprecedented ability to reason about abstract concepts and solve multi-step problems that previous models struggled with.",
+      content: "Researchers at OpenAI unveiled the next evolution in AI language models with GPT-5, which shows capabilities that approach human-like understanding and problem-solving in complex scenarios. The new model demonstrates unprecedented ability to reason about abstract concepts and solve multi-step problems that previous models struggled with. In internal testing, GPT-5 showed significant improvements in mathematical reasoning, logical deduction, and common-sense reasoning tasks. While GPT-4 made notable strides in these areas, GPT-5 takes another leap forward by maintaining coherent reasoning chains across much longer and more complex problems. Particularly impressive is the model's ability to identify and correct its own reasoning errors - a capability that begins to resemble human metacognition. Researchers caution that the technology is still in early prototype stages and a public release date has not been announced.",
       summary: "Researchers unveil the next evolution in AI language models with capabilities that approach human-like understanding and problem-solving in complex scenarios.",
       originalUrl: "https://example.com/gpt-5-prototype",
       imageUrl: "https://images.unsplash.com/photo-1620712943543-bcc4688e7485",
