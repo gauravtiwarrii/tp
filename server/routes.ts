@@ -7,15 +7,18 @@ import { z } from "zod";
 import cron from "node-cron";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Schedule news updates every hour using cron
   // Run immediate news update on startup
   console.log("Running immediate news update on startup");
-  scheduleNewsUpdates(60);
+  processAndSaveArticles(); // Immediate first update
   
-  // Schedule hourly updates
-  cron.schedule("0 * * * *", () => {
-    console.log("Running scheduled news update");
-    scheduleNewsUpdates(60);
+  // Schedule updates every 10 minutes
+  const updateInterval = 10; // Minutes
+  scheduleNewsUpdates(updateInterval);
+  
+  // Also set up a cron job as a backup mechanism
+  cron.schedule("*/10 * * * *", () => {
+    console.log(`Running scheduled news update every ${updateInterval} minutes`);
+    processAndSaveArticles();
   });
   
   // Test OpenAI connection status

@@ -412,16 +412,107 @@ export default function ArticlePage() {
               
               {/* Article Content with enhanced styling */}
               <div className="prose prose-invert prose-lg max-w-none">
-                {/* Display full article content with improved paragraphs */}
-                {article.content.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className={`${index === 0 ? 'first-letter:text-4xl first-letter:font-bold first-letter:text-primary-500 first-letter:mr-1 first-letter:float-left' : ''}`}>
-                    {paragraph}
-                  </p>
-                ))}
+                {/* Process and render article content properly */}
+                {article.content.split('\n\n').map((paragraph, index) => {
+                  // Handle markdown-style headers by removing # symbols and adding the appropriate header element
+                  if (paragraph.startsWith('## ')) {
+                    return (
+                      <h2 key={index} className="text-2xl font-bold mt-8 mb-4 text-white relative inline-block">
+                        {paragraph.replace('## ', '')}
+                        <span className="absolute -bottom-1 left-0 h-[2px] w-full bg-gradient-to-r from-primary-500 to-transparent"></span>
+                      </h2>
+                    );
+                  } else if (paragraph.startsWith('### ')) {
+                    return (
+                      <h3 key={index} className="text-xl font-semibold mt-6 mb-3 text-white">
+                        {paragraph.replace('### ', '')}
+                      </h3>
+                    );
+                  } else if (paragraph.startsWith('#### ')) {
+                    return (
+                      <h4 key={index} className="text-lg font-semibold mt-5 mb-2 text-white">
+                        {paragraph.replace('#### ', '')}
+                      </h4>
+                    );
+                  } else if (paragraph.startsWith('# ')) {
+                    return (
+                      <h1 key={index} className="text-3xl font-bold mt-10 mb-5 text-white">
+                        {paragraph.replace('# ', '')}
+                      </h1>
+                    );
+                  } else if (paragraph.startsWith('![')) {
+                    // Handle image markdown syntax ![alt text](image url)
+                    try {
+                      const altText = paragraph.match(/!\[(.*?)\]/)?.[1] || 'Image';
+                      const imageUrl = paragraph.match(/\((.*?)\)/)?.[1];
+                      
+                      if (imageUrl) {
+                        return (
+                          <figure key={index} className="my-8 perspective-1000">
+                            <div className="transform transition-transform hover:scale-[1.01] duration-300 shadow-xl rounded-lg overflow-hidden border border-dark-700">
+                              <img 
+                                src={imageUrl} 
+                                alt={altText} 
+                                className="w-full h-auto" 
+                              />
+                            </div>
+                            <figcaption className="text-center text-sm text-gray-400 mt-2">{altText}</figcaption>
+                          </figure>
+                        );
+                      }
+                    } catch (e) {
+                      // If we can't parse the image markdown, just render it as text
+                      return <p key={index}>{paragraph}</p>;
+                    }
+                  } else if (paragraph.startsWith('- ')) {
+                    // Handle unordered lists
+                    const items = paragraph.split('\n').map(item => item.replace('- ', ''));
+                    return (
+                      <ul key={index} className="list-disc pl-6 my-4 space-y-2">
+                        {items.map((item, i) => (
+                          <li key={i} className="text-gray-300">{item}</li>
+                        ))}
+                      </ul>
+                    );
+                  } else if (/^\d+\.\s/.test(paragraph)) {
+                    // Handle ordered lists
+                    const items = paragraph.split('\n').map(item => item.replace(/^\d+\.\s/, ''));
+                    return (
+                      <ol key={index} className="list-decimal pl-6 my-4 space-y-2">
+                        {items.map((item, i) => (
+                          <li key={i} className="text-gray-300">{item}</li>
+                        ))}
+                      </ol>
+                    );
+                  } else if (paragraph.startsWith('```')) {
+                    // Handle code blocks
+                    const code = paragraph.replace(/```.*\n/, '').replace(/```$/, '');
+                    return (
+                      <pre key={index} className="bg-dark-800 p-4 rounded-lg overflow-x-auto my-6 border border-dark-700">
+                        <code className="text-sm font-mono text-gray-300">{code}</code>
+                      </pre>
+                    );
+                  } else if (paragraph.startsWith('>')) {
+                    // Handle blockquotes
+                    return (
+                      <blockquote key={index} className="border-l-4 border-primary-500 pl-4 py-1 my-6 italic text-gray-400">
+                        {paragraph.replace('> ', '')}
+                      </blockquote>
+                    );
+                  } else {
+                    // Regular paragraph with first paragraph special styling
+                    return (
+                      <p key={index} className={`${index === 0 ? 'first-letter:text-4xl first-letter:font-bold first-letter:text-primary-500 first-letter:mr-1 first-letter:float-left' : ''} leading-relaxed text-gray-200`}>
+                        {paragraph}
+                      </p>
+                    );
+                  }
+                })}
                 
                 {/* Original Source Link with 3D effect */}
-                <div className="mt-8 p-6 bg-dark-500/50 rounded-xl border border-dark-400 transform transition-transform hover:scale-[1.01] shadow-lg">
-                  <p className="text-sm text-gray-300 mb-0">
+                <div className="mt-8 p-6 bg-gradient-to-br from-dark-900 to-black rounded-xl border border-dark-700 transform transition-transform hover:scale-[1.01] shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+                  <p className="text-sm text-gray-300 mb-0 flex items-center">
+                    <span className="inline-block w-2 h-2 bg-primary-500 rounded-full mr-2 animate-pulse-subtle"></span>
                     This article has been AI-summarized from the original source. Read the full article at:
                     <a 
                       href={article.originalUrl} 
