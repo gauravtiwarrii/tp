@@ -6,12 +6,17 @@ import { ThemeProvider } from "@/lib/theme-provider";
 import { SearchProvider } from "@/context/search-context";
 import { Suspense, lazy, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import CookieConsent from "@/components/cookie-consent";
 
 // Lazy load components for better performance
 const Home = lazy(() => import("@/pages/home"));
 const ArticlePage = lazy(() => import("@/pages/article"));
 const CategoryPage = lazy(() => import("@/pages/category"));
 const SearchPage = lazy(() => import("@/pages/search"));
+const AboutPage = lazy(() => import("@/pages/about"));
+const ContactPage = lazy(() => import("@/pages/contact"));
+const PrivacyPage = lazy(() => import("@/pages/privacy"));
+const TermsPage = lazy(() => import("@/pages/terms"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 // Loading fallback component
@@ -65,6 +70,10 @@ function Router() {
         <Route path="/article/:id" component={ArticlePage} />
         <Route path="/category/:slug" component={CategoryPage} />
         <Route path="/search" component={SearchPage} />
+        <Route path="/about" component={AboutPage} />
+        <Route path="/contact" component={ContactPage} />
+        <Route path="/privacy" component={PrivacyPage} />
+        <Route path="/terms" component={TermsPage} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>
@@ -78,6 +87,7 @@ function App() {
         <SearchProvider>
           <Router />
           <Toaster />
+          <CookieConsent privacyPolicyUrl="/privacy" />
         </SearchProvider>
       </ThemeProvider>
     </QueryClientProvider>
