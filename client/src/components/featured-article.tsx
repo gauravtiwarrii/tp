@@ -66,22 +66,22 @@ export default function FeaturedArticle() {
 
   return (
     <section className="mb-12 pt-4">
-      <div className="relative overflow-hidden rounded-2xl mx-auto">
+      <div className="relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-t from-dark-900 to-transparent z-10"></div>
         <img
           src={article.imageUrl || DEFAULT_PLACEHOLDER_IMAGE}
           alt={article.title}
           className="w-full h-72 md:h-96 object-cover"
         />
-        <div className="absolute inset-0 z-20 p-4 md:p-8 flex flex-col justify-end">
-          <span className="bg-primary-500 text-white px-3 py-1 rounded-full text-xs md:text-sm font-medium inline-flex items-center mb-4 w-fit">
+        <div className="absolute inset-0 z-20 p-8 flex flex-col justify-end">
+          <span className="bg-primary-500 text-white px-3 py-1 rounded-full text-xs font-medium inline-flex items-center mb-4 w-fit">
             <Bot className="mr-1 h-3 w-3" /> AI-Generated
           </span>
-          <h1 className="text-xl md:text-2xl lg:text-4xl font-bold text-white mb-3">{article.title}</h1>
-          <p className="text-sm md:text-base lg:text-lg text-gray-300 mb-4">{article.summary}</p>
-          <div className="flex items-center space-x-4 flex-wrap md:flex-nowrap">
+          <h1 className="text-2xl md:text-4xl font-bold text-white mb-3">{article.title}</h1>
+          <p className="text-sm md:text-base text-gray-300 mb-4 max-w-3xl">{article.summary}</p>
+          <div className="flex items-center space-x-4">
             <div className="flex items-center">
-              <span className="text-sm md:text-base text-gray-400">
+              <span className="text-sm text-gray-400">
                 AI-Curated • <span className="text-gray-300">{formatDate(article.publishedAt)}</span>
               </span>
             </div>
