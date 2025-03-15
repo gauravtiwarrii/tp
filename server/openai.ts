@@ -1,10 +1,14 @@
+
 import OpenAI from "openai";
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // Summarize article text
 export async function summarizeArticle(text: string, maxLength: number = 150): Promise<string> {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OpenAI API key not configured");
+  }
+
   try {
     const prompt = `Please summarize the following text concisely in about ${maxLength} characters while maintaining key points. Make it engaging for a tech blog reader:\n\n${text}`;
 
@@ -16,9 +20,9 @@ export async function summarizeArticle(text: string, maxLength: number = 150): P
     const content = response.choices[0].message.content;
     if (!content) throw new Error("No content returned from OpenAI");
     return content;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error summarizing article:", error);
-    throw new Error("Failed to summarize article");
+    throw new Error(`Failed to summarize article: ${error.message}`);
   }
 }
 
@@ -27,6 +31,10 @@ export async function categorizeArticle(text: string, availableCategories: strin
   category: string;
   confidence: number;
 }> {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OpenAI API key not configured");
+  }
+
   try {
     const categoriesString = availableCategories.join(", ");
     
@@ -46,19 +54,22 @@ export async function categorizeArticle(text: string, availableCategories: strin
     });
 
     const result = JSON.parse(response.choices[0].message.content);
-
     return {
       category: result.category,
       confidence: result.confidence,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error categorizing article:", error);
-    throw new Error("Failed to categorize article");
+    throw new Error(`Failed to categorize article: ${error.message}`);
   }
 }
 
 // Generate article tags
 export async function generateTags(text: string, maxTags: number = 5): Promise<string[]> {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OpenAI API key not configured");
+  }
+
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -77,31 +88,35 @@ export async function generateTags(text: string, maxTags: number = 5): Promise<s
 
     const result = JSON.parse(response.choices[0].message.content);
     return result.tags;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating tags:", error);
-    throw new Error("Failed to generate tags");
+    throw new Error(`Failed to generate tags: ${error.message}`);
   }
 }
 
-// Enhance article content
-export async function enhanceArticleContent(title: string, content: string): Promise<string> {
+// Test OpenAI API connection
+export async function testOpenAiConnection(): Promise<{ success: boolean; message: string }> {
+  if (!process.env.OPENAI_API_KEY) {
+    return {
+      success: false,
+      message: "OpenAI API key not configured. Please add OPENAI_API_KEY to your environment variables.",
+    };
+  }
+
   try {
-    const prompt = `Rewrite the following tech article content to be more engaging and informative while maintaining factual accuracy. Add relevant technical context where appropriate. Keep the same overall length.
-
-Title: ${title}
-
-Content: ${content}`;
-
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: "Test connection" }],
     });
 
-    const responseContent = response.choices[0].message.content;
-    if (!responseContent) throw new Error("No content returned from OpenAI");
-    return responseContent;
-  } catch (error) {
-    console.error("Error enhancing article content:", error);
-    throw new Error("Failed to enhance article content");
+    return {
+      success: true,
+      message: "Successfully connected to OpenAI API",
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: `OpenAI API error: ${error.message}`,
+    };
   }
 }
