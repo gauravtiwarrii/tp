@@ -1,92 +1,194 @@
-import {
-  users, type User, type InsertUser,
-  categories, type Category, type InsertCategory,
-  articles, type Article, type InsertArticle
+import { 
+  Article, InsertArticle, 
+  Category, InsertCategory, 
+  Tag, InsertTag, 
+  ArticleTag, InsertArticleTag 
 } from "@shared/schema";
 
-// modify the interface with any CRUD methods
-// you might need
-
 export interface IStorage {
-  // User operations
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  // Article methods
+  getArticles(limit: number, offset: number): Promise<Article[]>;
+  getArticleById(id: number): Promise<Article | undefined>;
+  getArticlesByCategoryId(categoryId: number, limit: number, offset: number): Promise<Article[]>;
+  getArticlesByTagId(tagId: number, limit: number, offset: number): Promise<Article[]>;
+  getFeaturedArticle(): Promise<Article | undefined>;
+  searchArticles(query: string, limit: number, offset: number): Promise<Article[]>;
+  createArticle(article: InsertArticle): Promise<Article>;
+  updateArticle(id: number, article: Partial<Article>): Promise<Article | undefined>;
+  incrementArticleViews(id: number): Promise<Article | undefined>;
+  deleteArticle(id: number): Promise<boolean>;
   
-  // Category operations
+  // Category methods
   getCategories(): Promise<Category[]>;
+  getCategoryById(id: number): Promise<Category | undefined>;
   getCategoryBySlug(slug: string): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
-  updateCategoryArticleCount(id: number, count: number): Promise<Category>;
   
-  // Article operations
-  getArticles(limit?: number): Promise<Article[]>;
-  getArticleBySlug(slug: string): Promise<Article | undefined>;
-  getFeaturedArticle(): Promise<Article | undefined>;
-  getTrendingArticles(limit?: number): Promise<Article[]>;
-  getArticlesByCategory(categoryId: number, limit?: number): Promise<Article[]>;
-  createArticle(article: InsertArticle): Promise<Article>;
-  updateArticle(id: number, article: Partial<InsertArticle>): Promise<Article>;
+  // Tag methods
+  getTags(): Promise<Tag[]>;
+  getTagById(id: number): Promise<Tag | undefined>;
+  getTagBySlug(slug: string): Promise<Tag | undefined>;
+  createTag(tag: InsertTag): Promise<Tag>;
+  getArticleTags(articleId: number): Promise<Tag[]>;
+  
+  // Article-Tag methods
+  createArticleTag(articleTag: InsertArticleTag): Promise<ArticleTag>;
+  deleteArticleTag(articleId: number, tagId: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private categories: Map<number, Category>;
   private articles: Map<number, Article>;
+  private categories: Map<number, Category>;
+  private tags: Map<number, Tag>;
+  private articleTags: Map<number, ArticleTag>;
   
-  private userCurrentId: number;
-  private categoryCurrentId: number;
-  private articleCurrentId: number;
-
+  private articleIdCounter: number;
+  private categoryIdCounter: number;
+  private tagIdCounter: number;
+  private articleTagIdCounter: number;
+  
   constructor() {
-    this.users = new Map();
-    this.categories = new Map();
     this.articles = new Map();
+    this.categories = new Map();
+    this.tags = new Map();
+    this.articleTags = new Map();
     
-    this.userCurrentId = 1;
-    this.categoryCurrentId = 1;
-    this.articleCurrentId = 1;
+    this.articleIdCounter = 1;
+    this.categoryIdCounter = 1;
+    this.tagIdCounter = 1;
+    this.articleTagIdCounter = 1;
     
     // Initialize with default categories
-    this.initializeDefaultData();
-  }
-  
-  private initializeDefaultData() {
-    // Add default categories
-    const defaultCategories = [
-      { name: "AI & ML", slug: "ai-ml", icon: "robot", color: "bg-gradient-to-r from-[#6C63FF] to-[#9089FC]", articleCount: 153 },
-      { name: "Gadgets", slug: "gadgets", icon: "microchip", color: "bg-gradient-to-r from-[#FF6B6B] to-[#FFB88C]", articleCount: 98 },
-      { name: "Software", slug: "software", icon: "code", color: "bg-gradient-to-r from-[#2DD4BF] to-[#06B6D4]", articleCount: 122 },
-      { name: "Innovation", slug: "innovation", icon: "lightbulb", color: "bg-gradient-to-r from-[#9333EA] to-[#F472B6]", articleCount: 75 }
+    const defaultCategories: InsertCategory[] = [
+      { name: "Artificial Intelligence", slug: "ai", description: "News about AI advancements", imageUrl: "https://images.unsplash.com/photo-1580927752452-89d86da3fa0a" },
+      { name: "Gadgets", slug: "gadgets", description: "Latest tech gadgets", imageUrl: "https://images.unsplash.com/photo-1600267175161-cfaa711b4a81" },
+      { name: "Software", slug: "software", description: "Software and app updates", imageUrl: "https://images.unsplash.com/photo-1626379961798-54f819ee896a" },
+      { name: "Hardware", slug: "hardware", description: "Computer hardware news", imageUrl: "https://images.unsplash.com/photo-1558346490-a72e53ae2d4f" },
+      { name: "Cybersecurity", slug: "cybersecurity", description: "Security and privacy news", imageUrl: "https://images.unsplash.com/photo-1526666923127-b2970f64b422" },
+      { name: "Quantum Computing", slug: "quantum-computing", description: "Advances in quantum computing", imageUrl: "https://images.unsplash.com/photo-1551739440-5dd934d3a94a" }
     ];
     
-    defaultCategories.forEach(category => {
-      this.createCategory({
-        name: category.name,
-        slug: category.slug,
-        icon: category.icon,
-        color: category.color,
-        articleCount: category.articleCount
-      });
-    });
+    defaultCategories.forEach(category => this.createCategory(category));
+    
+    // Initialize with default tags
+    const defaultTags: InsertTag[] = [
+      { name: "Machine Learning", slug: "machine-learning" },
+      { name: "Smart Home", slug: "smart-home" },
+      { name: "Cybersecurity", slug: "cybersecurity" },
+      { name: "5G", slug: "5g" },
+      { name: "Deep Learning", slug: "deep-learning" },
+      { name: "Cloud Computing", slug: "cloud-computing" },
+      { name: "IoT", slug: "iot" },
+      { name: "AR", slug: "ar" },
+      { name: "Big Data", slug: "big-data" },
+      { name: "Blockchain", slug: "blockchain" }
+    ];
+    
+    defaultTags.forEach(tag => this.createTag(tag));
   }
-
-  // User methods
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+  
+  // Article methods
+  async getArticles(limit: number = 10, offset: number = 0): Promise<Article[]> {
+    const articles = Array.from(this.articles.values())
+      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    
+    return articles.slice(offset, offset + limit);
   }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  
+  async getArticleById(id: number): Promise<Article | undefined> {
+    return this.articles.get(id);
   }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userCurrentId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  
+  async getArticlesByCategoryId(categoryId: number, limit: number = 10, offset: number = 0): Promise<Article[]> {
+    const articles = Array.from(this.articles.values())
+      .filter(article => article.categoryId === categoryId)
+      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    
+    return articles.slice(offset, offset + limit);
+  }
+  
+  async getArticlesByTagId(tagId: number, limit: number = 10, offset: number = 0): Promise<Article[]> {
+    const articleIds = new Set<number>();
+    
+    Array.from(this.articleTags.values())
+      .filter(at => at.tagId === tagId)
+      .forEach(at => articleIds.add(at.articleId));
+    
+    const articles = Array.from(articleIds)
+      .map(id => this.articles.get(id))
+      .filter(Boolean) as Article[];
+    
+    articles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    
+    return articles.slice(offset, offset + limit);
+  }
+  
+  async getFeaturedArticle(): Promise<Article | undefined> {
+    // Return the newest article as the featured one
+    const articles = Array.from(this.articles.values())
+      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    
+    return articles[0];
+  }
+  
+  async searchArticles(query: string, limit: number = 10, offset: number = 0): Promise<Article[]> {
+    const searchTerm = query.toLowerCase();
+    
+    const articles = Array.from(this.articles.values())
+      .filter(article => 
+        article.title.toLowerCase().includes(searchTerm) || 
+        article.content.toLowerCase().includes(searchTerm) ||
+        article.summary.toLowerCase().includes(searchTerm)
+      )
+      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    
+    return articles.slice(offset, offset + limit);
+  }
+  
+  async createArticle(article: InsertArticle): Promise<Article> {
+    const id = this.articleIdCounter++;
+    const newArticle: Article = {
+      ...article,
+      id,
+      aiProcessed: false,
+      createdAt: new Date(),
+      viewCount: 0
+    };
+    
+    this.articles.set(id, newArticle);
+    return newArticle;
+  }
+  
+  async updateArticle(id: number, article: Partial<Article>): Promise<Article | undefined> {
+    const existingArticle = this.articles.get(id);
+    
+    if (!existingArticle) return undefined;
+    
+    const updatedArticle = {
+      ...existingArticle,
+      ...article
+    };
+    
+    this.articles.set(id, updatedArticle);
+    return updatedArticle;
+  }
+  
+  async incrementArticleViews(id: number): Promise<Article | undefined> {
+    const article = this.articles.get(id);
+    
+    if (!article) return undefined;
+    
+    const updatedArticle = {
+      ...article,
+      viewCount: article.viewCount + 1
+    };
+    
+    this.articles.set(id, updatedArticle);
+    return updatedArticle;
+  }
+  
+  async deleteArticle(id: number): Promise<boolean> {
+    return this.articles.delete(id);
   }
   
   // Category methods
@@ -94,114 +196,77 @@ export class MemStorage implements IStorage {
     return Array.from(this.categories.values());
   }
   
+  async getCategoryById(id: number): Promise<Category | undefined> {
+    return this.categories.get(id);
+  }
+  
   async getCategoryBySlug(slug: string): Promise<Category | undefined> {
-    return Array.from(this.categories.values()).find(
-      (category) => category.slug === slug,
-    );
+    return Array.from(this.categories.values()).find(cat => cat.slug === slug);
   }
   
-  async createCategory(insertCategory: InsertCategory): Promise<Category> {
-    const id = this.categoryCurrentId++;
-    const category: Category = { ...insertCategory, id };
-    this.categories.set(id, category);
-    return category;
-  }
-  
-  async updateCategoryArticleCount(id: number, count: number): Promise<Category> {
-    const category = this.categories.get(id);
-    if (!category) {
-      throw new Error(`Category with id ${id} not found`);
-    }
-    
-    const updatedCategory: Category = {
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const id = this.categoryIdCounter++;
+    const newCategory: Category = {
       ...category,
-      articleCount: count
+      id
     };
     
-    this.categories.set(id, updatedCategory);
-    return updatedCategory;
+    this.categories.set(id, newCategory);
+    return newCategory;
   }
   
-  // Article methods
-  async getArticles(limit?: number): Promise<Article[]> {
-    const allArticles = Array.from(this.articles.values());
-    allArticles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    
-    if (limit) {
-      return allArticles.slice(0, limit);
-    }
-    
-    return allArticles;
+  // Tag methods
+  async getTags(): Promise<Tag[]> {
+    return Array.from(this.tags.values());
   }
   
-  async getArticleBySlug(slug: string): Promise<Article | undefined> {
-    return Array.from(this.articles.values()).find(
-      (article) => article.slug === slug,
+  async getTagById(id: number): Promise<Tag | undefined> {
+    return this.tags.get(id);
+  }
+  
+  async getTagBySlug(slug: string): Promise<Tag | undefined> {
+    return Array.from(this.tags.values()).find(tag => tag.slug === slug);
+  }
+  
+  async createTag(tag: InsertTag): Promise<Tag> {
+    const id = this.tagIdCounter++;
+    const newTag: Tag = {
+      ...tag,
+      id
+    };
+    
+    this.tags.set(id, newTag);
+    return newTag;
+  }
+  
+  async getArticleTags(articleId: number): Promise<Tag[]> {
+    const tagIds = Array.from(this.articleTags.values())
+      .filter(at => at.articleId === articleId)
+      .map(at => at.tagId);
+    
+    return tagIds.map(id => this.tags.get(id)).filter(Boolean) as Tag[];
+  }
+  
+  // Article-Tag methods
+  async createArticleTag(articleTag: InsertArticleTag): Promise<ArticleTag> {
+    const id = this.articleTagIdCounter++;
+    const newArticleTag: ArticleTag = {
+      ...articleTag,
+      id
+    };
+    
+    this.articleTags.set(id, newArticleTag);
+    return newArticleTag;
+  }
+  
+  async deleteArticleTag(articleId: number, tagId: number): Promise<boolean> {
+    const articleTagToDelete = Array.from(this.articleTags.values()).find(
+      at => at.articleId === articleId && at.tagId === tagId
     );
-  }
-  
-  async getFeaturedArticle(): Promise<Article | undefined> {
-    return Array.from(this.articles.values()).find(
-      (article) => article.isFeatured,
-    );
-  }
-  
-  async getTrendingArticles(limit?: number): Promise<Article[]> {
-    const trendingArticles = Array.from(this.articles.values())
-      .filter(article => article.isTrending)
-      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
     
-    if (limit) {
-      return trendingArticles.slice(0, limit);
-    }
+    if (!articleTagToDelete) return false;
     
-    return trendingArticles;
-  }
-  
-  async getArticlesByCategory(categoryId: number, limit?: number): Promise<Article[]> {
-    const categoryArticles = Array.from(this.articles.values())
-      .filter(article => article.categoryId === categoryId)
-      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
-    
-    if (limit) {
-      return categoryArticles.slice(0, limit);
-    }
-    
-    return categoryArticles;
-  }
-  
-  async createArticle(insertArticle: InsertArticle): Promise<Article> {
-    const id = this.articleCurrentId++;
-    const article: Article = { 
-      ...insertArticle, 
-      id,
-      publishedAt: insertArticle.publishedAt || new Date()
-    };
-    
-    this.articles.set(id, article);
-    
-    // Update category article count
-    const category = this.categories.get(article.categoryId);
-    if (category) {
-      this.updateCategoryArticleCount(category.id, category.articleCount + 1);
-    }
-    
-    return article;
-  }
-  
-  async updateArticle(id: number, articleUpdate: Partial<InsertArticle>): Promise<Article> {
-    const article = this.articles.get(id);
-    if (!article) {
-      throw new Error(`Article with id ${id} not found`);
-    }
-    
-    const updatedArticle: Article = {
-      ...article,
-      ...articleUpdate
-    };
-    
-    this.articles.set(id, updatedArticle);
-    return updatedArticle;
+    return this.articleTags.delete(articleTagToDelete.id);
   }
 }
 

@@ -1,73 +1,76 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-});
-
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
-
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
-
-export const categories = pgTable("categories", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  slug: text("slug").notNull().unique(),
-  icon: text("icon").notNull(),
-  color: text("color").notNull(),
-  articleCount: integer("article_count").default(0),
-});
-
-export const insertCategorySchema = createInsertSchema(categories).pick({
-  name: true,
-  slug: true,
-  icon: true,
-  color: true,
-  articleCount: true,
-});
-
-export type InsertCategory = z.infer<typeof insertCategorySchema>;
-export type Category = typeof categories.$inferSelect;
-
+// Article model
 export const articles = pgTable("articles", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
-  slug: text("slug").notNull().unique(),
-  summary: text("summary").notNull(),
   content: text("content").notNull(),
-  imageUrl: text("image_url").notNull(),
-  sourceUrl: text("source_url").notNull(),
-  categoryId: integer("category_id").notNull(),
-  isAiGenerated: boolean("is_ai_generated").default(false),
-  isFeatured: boolean("is_featured").default(false),
-  isTrending: boolean("is_trending").default(false),
-  publishedAt: timestamp("published_at").notNull().defaultNow(),
-  author: text("author").notNull(),
-  authorImageUrl: text("author_image_url"),
+  summary: text("summary").notNull(),
+  originalUrl: text("original_url").notNull(),
+  imageUrl: text("image_url"),
+  publishedAt: timestamp("published_at").notNull(),
+  sourceId: text("source_id").notNull(),
+  sourceName: text("source_name").notNull(),
+  aiProcessed: boolean("ai_processed").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  viewCount: integer("view_count").default(0).notNull(),
+  categoryId: integer("category_id"),
 });
 
-export const insertArticleSchema = createInsertSchema(articles).pick({
-  title: true,
-  slug: true,
-  summary: true,
-  content: true,
-  imageUrl: true,
-  sourceUrl: true,
-  categoryId: true,
-  isAiGenerated: true,
-  isFeatured: true,
-  isTrending: true,
-  publishedAt: true,
-  author: true,
-  authorImageUrl: true,
+// Category model
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  imageUrl: text("image_url"),
 });
 
-export type InsertArticle = z.infer<typeof insertArticleSchema>;
+// Tag model
+export const tags = pgTable("tags", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+});
+
+// Article-Tag relation
+export const articleTags = pgTable("article_tags", {
+  id: serial("id").primaryKey(),
+  articleId: integer("article_id").notNull(),
+  tagId: integer("tag_id").notNull(),
+});
+
+// Schema for article insertion
+export const insertArticleSchema = createInsertSchema(articles).omit({
+  id: true,
+  createdAt: true,
+  viewCount: true,
+  aiProcessed: true
+});
+
+// Schema for category insertion
+export const insertCategorySchema = createInsertSchema(categories).omit({
+  id: true
+});
+
+// Schema for tag insertion
+export const insertTagSchema = createInsertSchema(tags).omit({
+  id: true
+});
+
+// Schema for article-tag insertion
+export const insertArticleTagSchema = createInsertSchema(articleTags).omit({
+  id: true
+});
+
+// Type definitions
 export type Article = typeof articles.$inferSelect;
+export type InsertArticle = z.infer<typeof insertArticleSchema>;
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type Tag = typeof tags.$inferSelect;
+export type InsertTag = z.infer<typeof insertTagSchema>;
+export type ArticleTag = typeof articleTags.$inferSelect;
+export type InsertArticleTag = z.infer<typeof insertArticleTagSchema>;

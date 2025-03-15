@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || "your-api-key" });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 // Summarize article text
 export async function summarizeArticle(text: string, maxLength: number = 150): Promise<string> {
@@ -13,10 +13,12 @@ export async function summarizeArticle(text: string, maxLength: number = 150): P
       messages: [{ role: "user", content: prompt }],
     });
 
-    return response.choices[0].message.content || "";
+    const content = response.choices[0].message.content;
+    if (!content) throw new Error("No content returned from OpenAI");
+    return content;
   } catch (error) {
     console.error("Error summarizing article:", error);
-    return text.substring(0, maxLength) + "..."; // Fallback if API call fails
+    throw new Error("Failed to summarize article");
   }
 }
 
@@ -51,11 +53,7 @@ export async function categorizeArticle(text: string, availableCategories: strin
     };
   } catch (error) {
     console.error("Error categorizing article:", error);
-    // Return default category with low confidence if API call fails
-    return {
-      category: availableCategories[0],
-      confidence: 0.5,
-    };
+    throw new Error("Failed to categorize article");
   }
 }
 
@@ -81,7 +79,7 @@ export async function generateTags(text: string, maxTags: number = 5): Promise<s
     return result.tags;
   } catch (error) {
     console.error("Error generating tags:", error);
-    return []; // Return empty array if API call fails
+    throw new Error("Failed to generate tags");
   }
 }
 
@@ -99,9 +97,11 @@ Content: ${content}`;
       messages: [{ role: "user", content: prompt }],
     });
 
-    return response.choices[0].message.content || content;
+    const responseContent = response.choices[0].message.content;
+    if (!responseContent) throw new Error("No content returned from OpenAI");
+    return responseContent;
   } catch (error) {
     console.error("Error enhancing article content:", error);
-    return content; // Return original content if API call fails
+    throw new Error("Failed to enhance article content");
   }
 }
